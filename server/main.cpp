@@ -1,5 +1,5 @@
 #include <condition_variable>
-#include <enet.h>
+#include <enet/enet.h>
 #include <functional>
 #include <mutex>
 #include <queue>
@@ -115,12 +115,6 @@ int main() {
 
         case ENET_EVENT_TYPE_DISCONNECT:
           printf("%s disconnected.\n", event.peer->data);
-          /* Reset the peer's client information. */
-          event.peer->data = NULL;
-          break;
-
-        case ENET_EVENT_TYPE_DISCONNECT_TIMEOUT:
-          printf("%s disconnected due to timeout.\n", event.peer->data);
           /* Reset the peer's client information. */
           event.peer->data = NULL;
           break;
