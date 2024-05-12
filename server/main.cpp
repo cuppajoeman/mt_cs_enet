@@ -8,6 +8,7 @@
 #include <thread>
 
 int num_input_snapshots_processed = 0;
+std::mutex enet_mutex;
 
 struct InputSnapshot {
   int mock_data;
@@ -94,7 +95,14 @@ int main() {
     while (true) {
       ENetEvent event;
       /* Wait up to 1000 milliseconds for an event. (WARNING: blocking) */
-      while (enet_host_service(server, &event, 1000) > 0) {
+
+      enet_mutex.lock();
+      printf("locking enet_host_service in receive loop\n");
+      int service_result = enet_host_service(server, &event, 1000);
+      printf("un-locking enet_host_service in receive loop\n");
+      enet_mutex.unlock();
+
+      while (service_result > 0) {
         switch (event.type) {
         case ENET_EVENT_TYPE_CONNECT:
           printf("A new client connected from %x:%u.\n",
@@ -122,6 +130,11 @@ int main() {
         case ENET_EVENT_TYPE_NONE:
           break;
         }
+        enet_mutex.lock();
+        printf("locking enet_host_service in receive loop\n");
+        service_result = enet_host_service(server, &event, 1000);
+        printf("un-locking enet_host_service in receive loop\n");
+        enet_mutex.unlock();
       }
     }
   };
@@ -139,10 +152,14 @@ int main() {
 
   std::function send_loop = [&server]() {
     while (true) {
+      enet_mutex.lock();
+      printf("locking packet creation and send in send loop\n");
       ENetPacket *packet =
           enet_packet_create(&num_input_snapshots_processed, sizeof(int), 0);
       enet_host_broadcast(server, 0, packet);
       enet_host_flush(server);
+      printf("un-locking packet creation and send in send loop\n");
+      enet_mutex.unlock();
       std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
   };
