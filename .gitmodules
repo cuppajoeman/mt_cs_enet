@@ -1,0 +1,6 @@
+[submodule "client/external_libraries/enet"]
+	path = client/external_libraries/enet
+	url = git@github.com:zpl-c/enet.git
+[submodule "server/external_libraries/enet"]
+	path = server/external_libraries/enet
+	url = git@github.com:zpl-c/enet.git
